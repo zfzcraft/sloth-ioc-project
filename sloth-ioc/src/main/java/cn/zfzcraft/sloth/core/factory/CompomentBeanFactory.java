@@ -1,0 +1,29 @@
+package cn.zfzcraft.sloth.core.factory;
+
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+
+import cn.zfzcraft.sloth.core.ApplicationContext;
+import cn.zfzcraft.sloth.core.exception.BeanCreationFailedException;
+import cn.zfzcraft.sloth.core.exception.TooManyConstructorsException;
+
+public class CompomentBeanFactory implements BeanFactory{
+
+	@Override
+	public Object createBean(ApplicationContext applicationContext, AnnotatedElement beanElement) {
+		Class<?> beanClass = (Class<?>) beanElement;
+		Constructor<?>[] constructors = beanClass.getConstructors();
+		if (constructors.length>1) {
+			throw new TooManyConstructorsException("Class "+beanClass.getName()+" has too many constructors. Only one constructor is allowed.");
+		}
+		Constructor<?> ctor = constructors[0];
+		Object[] args = resolveArgs(applicationContext,ctor.getParameterTypes());
+		try {
+			Object instance = ctor.newInstance(args);
+			return instance;
+		} catch (Exception e) {
+			throw new BeanCreationFailedException("Class "+beanClass.getName()+" failed to reate Bean.",e);
+		}
+	}
+	
+}
